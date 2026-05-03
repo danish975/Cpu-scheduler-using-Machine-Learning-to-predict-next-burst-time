@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ProcessForm from '../components/ProcessForm';
 import GanttChart from '../components/GanttChart';
+import GanttChartComparison from '../components/GanttChartComparison';
 import AlgorithmComparison from '../components/AlgorithmComparison';
 import PredictionTable from '../components/PredictionTable';
 import ProcessMetricsTable from '../components/ProcessMetricsTable';
@@ -115,6 +116,8 @@ const Dashboard = () => {
             {results ? (
               <div className="results-content fade-in">
                 <AlgorithmComparison results={results} />
+
+                <GanttChartComparison results={results} />
 
                 <div className="detailed-view-controls card slide-up" style={{marginBottom: '2rem'}}>
                   <h3>Detailed Timeline View</h3>

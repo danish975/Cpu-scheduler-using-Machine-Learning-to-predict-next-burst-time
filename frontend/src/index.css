@@ -347,3 +347,83 @@ body {
 
 /* Recharts Customization */
 .recharts-cartesian-grid-horizontal line { stroke: rgba(255, 255, 255, 0.05); }
+
+/* ─── Gantt Rich Tooltip ─── */
+.gantt-tooltip {
+  position: absolute; z-index: 50; pointer-events: none;
+  transform: translate(-50%, -100%);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
+  padding: 0; min-width: 160px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+  animation: tooltipIn 0.15s ease-out;
+  overflow: hidden;
+}
+.gantt-tooltip-header {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.gantt-tooltip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.gantt-tooltip-title { font-weight: 600; font-size: 0.8rem; color: #f8fafc; }
+.gantt-tooltip-body { padding: 0.5rem 0.75rem; }
+.gantt-tooltip-row {
+  display: flex; justify-content: space-between; gap: 1rem;
+  padding: 0.15rem 0; font-size: 0.75rem;
+}
+.gantt-tooltip-key { color: #94a3b8; }
+.gantt-tooltip-val { color: #e2e8f0; font-weight: 500; font-variant-numeric: tabular-nums; }
+.gantt-tooltip-duration { border-top: 1px solid rgba(255,255,255,0.06); margin-top: 0.2rem; padding-top: 0.3rem; }
+.gantt-tooltip-val-highlight {
+  background: linear-gradient(to right, #60a5fa, #34d399);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;
+}
+.gantt-tooltip-arrow {
+  position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+  width: 10px; height: 5px;
+  background: #0f172a; clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+@keyframes tooltipIn { from { opacity: 0; transform: translate(-50%, -100%) translateY(4px); } to { opacity: 1; transform: translate(-50%, -100%) translateY(0); } }
+
+/* ─── Gantt Block Animations ─── */
+.gantt-block-animated { cursor: pointer; }
+.gantt-block-animated:hover { filter: brightness(1.2) !important; z-index: 10; transform: scaleY(1.08); }
+
+/* ─── Gantt Comparison Panel ─── */
+.gantt-comparison { margin-bottom: 2rem; }
+.gantt-comparison-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.gantt-comparison-legend { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.gantt-comparison-algo-badge {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.8rem;
+  background: rgba(15,23,42,0.5); border: 1px solid;
+}
+.gantt-comparison-algo-dot { width: 8px; height: 8px; border-radius: 50%; }
+.gantt-comparison-algo-name { font-weight: 600; color: var(--text-main); }
+.gantt-comparison-algo-tag { font-size: 0.7rem; font-weight: 500; opacity: 0.8; }
+
+.gantt-comparison-grid { display: flex; flex-direction: column; gap: 1.25rem; }
+.gantt-comparison-panel {
+  background: rgba(15,23,42,0.35); border: 1px solid var(--border-color);
+  border-radius: 10px; padding: 1rem 1.25rem; position: relative;
+  border-left: 3px solid var(--algo-color, var(--primary));
+  animation: panelSlideIn 0.5s ease-out both;
+}
+.gantt-comparison-panel-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem; }
+.gantt-comparison-panel-title { display: flex; align-items: center; gap: 0.5rem; }
+.gantt-comparison-panel-dot { width: 10px; height: 10px; border-radius: 50%; }
+.gantt-comparison-panel-algo { font-weight: 700; font-size: 1rem; }
+.gantt-comparison-panel-fullname { font-size: 0.8rem; color: var(--text-muted); }
+.gantt-comparison-stats { display: flex; gap: 1rem; flex-wrap: wrap; }
+.gantt-comparison-stat {
+  display: flex; flex-direction: column; align-items: center;
+  background: rgba(255,255,255,0.03); padding: 0.3rem 0.6rem; border-radius: 6px; min-width: 60px;
+}
+.gantt-comparison-stat-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.gantt-comparison-stat-value { font-size: 0.9rem; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; }
+
+/* Compact mode adjustments */
+.gantt-compact .gantt-label { font-size: 0; height: 0; margin: 0; overflow: hidden; }
+.gantt-compact .legend { display: none; }
+
+@keyframes panelSlideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }

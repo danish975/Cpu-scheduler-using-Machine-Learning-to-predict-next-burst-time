@@ -427,3 +427,49 @@ body {
 .gantt-compact .legend { display: none; }
 
 @keyframes panelSlideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ─── Analysis Insights ─── */
+.analysis-insights { margin-bottom: 2rem; }
+.section-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; margin-top: 2rem; }
+.section-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+/* Insights Grid */
+.insights-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+.insight-card {
+  background: rgba(15,23,42,0.4); border: 1px solid var(--border-color);
+  border-radius: 10px; padding: 0.85rem 1rem; cursor: pointer;
+  transition: all 0.2s; animation: slideIn 0.4s ease-out both;
+}
+.insight-card:hover { background: rgba(15,23,42,0.6); border-color: rgba(255,255,255,0.15); }
+.insight-header { display: flex; align-items: flex-start; gap: 0.75rem; }
+.insight-icon {
+  width: 32px; height: 32px; border-radius: 8px; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+}
+.insight-icon-success { background: rgba(16,185,129,0.15); color: #34d399; }
+.insight-icon-warning { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.insight-icon-danger { background: rgba(239,68,68,0.15); color: #f87171; }
+.insight-icon-info { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.insight-text { flex: 1; }
+.insight-title { font-size: 0.88rem; font-weight: 600; line-height: 1.4; }
+.insight-description {
+  font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;
+  line-height: 1.5; animation: slideIn 0.2s ease-out;
+}
+.insight-expand { color: var(--text-muted); flex-shrink: 0; margin-top: 2px; }
+.insight-success { border-left: 3px solid #10b981; }
+.insight-warning { border-left: 3px solid #f59e0b; }
+.insight-danger { border-left: 3px solid #ef4444; }
+.insight-info { border-left: 3px solid #3b82f6; }
+
+/* Improvement Table */
+.improvement-section { margin-top: 2rem; }
+.improvement-table td { vertical-align: middle; }
+.improvement-cell { display: flex; flex-direction: column; gap: 0.15rem; }
+.improvement-pct { font-weight: 700; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+.improvement-positive { color: #34d399; }
+.improvement-negative { color: #f87171; }
+.improvement-detail { font-size: 0.7rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+/* Scaling Section */
+.scaling-section { margin-top: 2rem; }

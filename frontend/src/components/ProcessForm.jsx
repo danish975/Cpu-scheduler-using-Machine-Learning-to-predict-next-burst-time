@@ -15,6 +15,7 @@ const ProcessForm = ({ onSimulate, isLoading }) => {
   const [timeQuantum, setTimeQuantum] = useState(2);
   const [contextSwitchTime, setContextSwitchTime] = useState(0.5);
   const [agingRate, setAgingRate] = useState(1.0);
+  const [mlMethod, setMlMethod] = useState('ensemble');
   const [isValid, setIsValid] = useState(true);
 
   useEffect(() => {
@@ -73,6 +74,7 @@ const ProcessForm = ({ onSimulate, isLoading }) => {
       timeQuantum: parseFloat(timeQuantum),
       contextSwitchTime: parseFloat(contextSwitchTime),
       agingRate: parseFloat(agingRate),
+      mlMethod: mlMethod,
     };
 
     onSimulate(parsedProcesses, config);
@@ -160,6 +162,21 @@ const ProcessForm = ({ onSimulate, isLoading }) => {
                 className="slider"
               />
               <div className="slider-range"><span>0</span><span>5</span></div>
+            </div>
+
+            <div className="slider-group" style={{marginTop: '0.5rem'}}>
+              <label>ML Prediction Method</label>
+              <select 
+                value={mlMethod} 
+                onChange={e => setMlMethod(e.target.value)}
+                className="input-select"
+              >
+                <option value="ensemble">Ensemble (Weighted Best)</option>
+                <option value="random_forest">Random Forest (Engineered Features)</option>
+                <option value="moving_average">Moving Average (Window=3)</option>
+                <option value="exponential_avg">Exponential Smoothing</option>
+                <option value="linear_regression">Linear Regression</option>
+              </select>
             </div>
           </div>
         )}

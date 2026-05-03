@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 
 class ProcessInput(BaseModel):
@@ -16,6 +16,7 @@ class SimulationConfig(BaseModel):
     time_quantum: Optional[float] = 2.0
     context_switch_time: Optional[float] = 0.0
     aging_rate: Optional[float] = 1.0
+    ml_method: Optional[str] = "ensemble"  # "moving_average", "exponential_avg", "linear_regression", "random_forest", "ensemble"
 
 
 class GanttBlock(BaseModel):
@@ -41,11 +42,27 @@ class PredictionDetail(BaseModel):
     actual: float
     predicted: float
     error: float
+    method: Optional[str] = None
+    features_used: Optional[Dict[str, float]] = None
+
+
+class MethodEvaluation(BaseModel):
+    method: str
+    mae: float
+    mse: float
+    mape: float
+    r_squared: float
 
 
 class PredictionError(BaseModel):
     mae: Optional[float] = None
     mse: Optional[float] = None
+    mape: Optional[float] = None
+    r_squared: Optional[float] = None
+    method_used: Optional[str] = None
+    all_methods: Optional[List[MethodEvaluation]] = None
+    oracle_wt_improvement_pct: Optional[float] = None
+    oracle_tat_improvement_pct: Optional[float] = None
     details: Optional[List[PredictionDetail]] = None
 
 

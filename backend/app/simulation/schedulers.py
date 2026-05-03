@@ -5,11 +5,12 @@ from typing import List, Optional
 import numpy as np
 
 from app.schemas.schemas import (
-    SimulationConfig, PredictionError, PredictionDetail,
+    SimulationConfig, PredictionError, PredictionDetail, SimulationResponse
 )
 from app.simulation.base_scheduler import BaseScheduler
 from app.simulation.process_state import ProcessState
 from app.ml_model.predictor import BurstPredictor
+from app.ml_model.evaluator import MLEvaluator
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -66,24 +67,75 @@ class MLSJFScheduler(BaseScheduler):
     def __init__(self):
         super().__init__()
         self.prediction_details: List[PredictionDetail] = []
+        self.predictor = BurstPredictor()
+        
+        # State for evaluation
+        self.all_actuals = []
+        self.method_predictions = {
+            "moving_average": [],
+            "exponential_avg": [],
+            "linear_regression": [],
+            "random_forest": [],
+            "ensemble": []
+        }
+        self.active_method = "ensemble"
+        self._prediction_error = None
+
+    def run(self, config: SimulationConfig) -> SimulationResponse:
+        self.active_method = config.ml_method or "ensemble"
+        response = super().run(config)
+        
+        # After simulation, evaluate ML
+        response.prediction_error = MLEvaluator.evaluate(
+            active_method=self.active_method,
+            all_actuals=self.all_actuals,
+            method_predictions=self.method_predictions,
+            details=self.prediction_details,
+            config=config,
+            ml_avg_wt=response.metrics.avg_waiting_time,
+            ml_avg_tat=response.metrics.avg_turnaround_time
+        )
+        return response
 
     def _select_process(self, ready_queue: List[ProcessState], config: SimulationConfig) -> ProcessState:
-        predictions = [
-            BurstPredictor.predict(p.history, method="linear_regression")
-            for p in ready_queue
-        ]
-        selected_idx = min(range(len(ready_queue)), key=lambda i: predictions[i])
-        selected = ready_queue[selected_idx]
+        predictions_map = {}
+        features_map = {}
+        all_preds_map = {}
+        
+        queue_depth = len(ready_queue)
+        
+        for p in ready_queue:
+            process_info = {
+                "queue_depth": float(queue_depth),
+                "io_ratio": (p.total_io_time / p.first_run_time) if p.first_run_time and p.first_run_time > 0 else 0.0
+            }
+            
+            preds, features = self.predictor.predict_all(p.history, process_info)
+            all_preds_map[p.id] = preds
+            features_map[p.id] = features
+            predictions_map[p.id] = preds.get(self.active_method, preds["moving_average"])
 
+        selected = min(ready_queue, key=lambda p: predictions_map[p.id])
+        
         actual = selected.remaining_cpu_burst
-        predicted = predictions[selected_idx]
+        predicted = predictions_map[selected.id]
         error = abs(predicted - actual)
-
+        
+        self.predictor.record_actual(features_map[selected.id], actual, all_preds_map[selected.id])
+        
+        self.all_actuals.append(actual)
+        for method, p_val in all_preds_map[selected.id].items():
+            if method not in self.method_predictions:
+                self.method_predictions[method] = []
+            self.method_predictions[method].append(p_val)
+            
         self.prediction_details.append(PredictionDetail(
             process=selected.id,
             actual=round(actual, 2),
             predicted=round(predicted, 2),
             error=round(error, 2),
+            method=self.active_method,
+            features_used={k: round(v, 2) for k, v in features_map[selected.id].items()}
         ))
 
         return selected
@@ -93,18 +145,6 @@ class MLSJFScheduler(BaseScheduler):
 
     def _is_preemptive(self) -> bool:
         return False
-
-    def _get_prediction_error(self) -> Optional[PredictionError]:
-        if not self.prediction_details:
-            return None
-        errors = [d.error for d in self.prediction_details]
-        mae = float(np.mean(errors))
-        mse = float(np.mean([e ** 2 for e in errors]))
-        return PredictionError(
-            mae=round(mae, 2),
-            mse=round(mse, 2),
-            details=self.prediction_details,
-        )
 
 
 # ═══════════════════════════════════════════════════════════════════

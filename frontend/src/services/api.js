@@ -11,6 +11,7 @@ export const simulateScheduling = async (algorithm, processes, config = {}) => {
     time_quantum: config.timeQuantum ?? 2.0,
     context_switch_time: config.contextSwitchTime ?? 0.0,
     aging_rate: config.agingRate ?? 1.0,
+    ml_method: config.mlMethod ?? "ensemble",
   });
   return response.data;
 };

@@ -265,10 +265,32 @@ body {
 }
 
 /* Prediction Metrics */
-.prediction-metrics { display: flex; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.pred-stat { display: flex; align-items: center; gap: 0.5rem; }
-.pred-label { color: var(--text-muted); font-size: 0.9rem; }
-.pred-value { font-weight: 700; font-size: 1.1rem; background: linear-gradient(to right, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.ml-insights-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+.oracle-badge {
+  background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 0.5rem 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-end;
+}
+.oracle-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.oracle-value { color: var(--success); font-weight: 700; font-size: 1.1rem; }
+.oracle-hint { font-size: 0.65rem; color: rgba(148, 163, 184, 0.6); margin-top: 0.1rem; }
+
+.prediction-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.pred-stat-box {
+  background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color);
+  padding: 1rem; border-radius: 10px; display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.pred-label { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
+.pred-value { font-weight: 700; font-size: 1.5rem; background: linear-gradient(to right, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.pred-sub { font-size: 0.7rem; color: rgba(148, 163, 184, 0.5); margin-top: 0.25rem; }
+
+.ml-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem; overflow-x: auto; }
+.ml-tab-content { min-height: 350px; }
+
+.feature-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.feature-tags span {
+  background: rgba(59, 130, 246, 0.1); color: #93c5fd;
+  padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-family: monospace;
+}
 
 /* Charts */
 .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }

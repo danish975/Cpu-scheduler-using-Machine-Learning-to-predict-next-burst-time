@@ -3,9 +3,12 @@ import ProcessForm from '../components/ProcessForm';
 import GanttChart from '../components/GanttChart';
 import AlgorithmComparison from '../components/AlgorithmComparison';
 import PredictionTable from '../components/PredictionTable';
+import ProcessMetricsTable from '../components/ProcessMetricsTable';
 import Toast from '../components/Toast';
 import { simulateScheduling } from '../services/api';
 import { Cpu, Download } from 'lucide-react';
+
+const ALGORITHMS = ['FCFS', 'SJF', 'SRTF', 'RR', 'Priority', 'Priority-P', 'ML-SJF'];
 
 const Dashboard = () => {
   const [results, setResults] = useState(null);
@@ -17,25 +20,46 @@ const Dashboard = () => {
     setToast({ message, type });
   };
 
-  const handleSimulate = async (processes) => {
+  const handleSimulate = async (processes, config) => {
     setIsLoading(true);
     setResults(null);
     try {
-      const [fcfs, sjf, mlsjf] = await Promise.all([
-        simulateScheduling('FCFS', processes),
-        simulateScheduling('SJF', processes),
-        simulateScheduling('ML-SJF', processes)
-      ]);
+      const promises = ALGORITHMS.map(algo =>
+        simulateScheduling(algo, processes, config)
+          .then(data => ({ algo, data, error: null }))
+          .catch(err => ({ algo, data: null, error: err.response?.data?.detail || err.message }))
+      );
 
-      setResults({
-        'FCFS': fcfs,
-        'SJF': sjf,
-        'ML-SJF': mlsjf
-      });
-      showToast('Simulation and multi-algorithm comparison completed!');
+      const responses = await Promise.all(promises);
+      const newResults = {};
+      const errors = [];
+
+      for (const { algo, data, error } of responses) {
+        if (data) {
+          newResults[algo] = data;
+        } else {
+          errors.push(`${algo}: ${error}`);
+        }
+      }
+
+      if (Object.keys(newResults).length > 0) {
+        setResults(newResults);
+        const successCount = Object.keys(newResults).length;
+        if (errors.length > 0) {
+          showToast(`${successCount}/${ALGORITHMS.length} algorithms completed. Failed: ${errors.join('; ')}`, 'warning');
+        } else {
+          showToast(`All ${successCount} algorithm simulations completed!`);
+        }
+        // Default to first available algorithm
+        if (!newResults[activeAlgorithm]) {
+          setActiveAlgorithm(Object.keys(newResults)[0]);
+        }
+      } else {
+        showToast('All simulations failed. Check your input and backend.', 'error');
+      }
     } catch (err) {
       console.error(err);
-      showToast(err.response?.data?.detail || "An error occurred during simulation.", "error");
+      showToast(err.message || "An error occurred during simulation.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -43,16 +67,17 @@ const Dashboard = () => {
 
   const exportData = () => {
     if (!results) return;
-    
+
     const exportObj = {
       timestamp: new Date().toISOString(),
+      algorithms: Object.keys(results),
       results: results
     };
-    
+
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
     const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href",     dataStr);
-    downloadAnchorNode.setAttribute("download", "cpu_scheduling_results.json");
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "nexus_scheduler_results.json");
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -62,7 +87,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <Toast message={toast.message} type={toast.type} onClose={() => setToast({message: '', type: ''})} />
-      
+
       <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div className="logo-container">
           <div className="logo-icon">
@@ -70,7 +95,7 @@ const Dashboard = () => {
           </div>
           <div className="logo-text">
             <h1>Nexus <span>Scheduler</span></h1>
-            <p className="subtitle">Predictive ML Task Scheduling & Analysis</p>
+            <p className="subtitle">Advanced Predictive ML Task Scheduling & Analysis</p>
           </div>
         </div>
         {results && (
@@ -85,17 +110,17 @@ const Dashboard = () => {
           <div className="sidebar">
             <ProcessForm onSimulate={handleSimulate} isLoading={isLoading} />
           </div>
-          
+
           <div className="results-area">
             {results ? (
               <div className="results-content fade-in">
                 <AlgorithmComparison results={results} />
-                
+
                 <div className="detailed-view-controls card slide-up" style={{marginBottom: '2rem'}}>
                   <h3>Detailed Timeline View</h3>
                   <div className="algo-tabs">
                     {Object.keys(results).map(algo => (
-                      <button 
+                      <button
                         key={algo}
                         className={`tab-btn ${activeAlgorithm === algo ? 'active' : ''}`}
                         onClick={() => setActiveAlgorithm(algo)}
@@ -104,13 +129,22 @@ const Dashboard = () => {
                       </button>
                     ))}
                   </div>
-                  
+
                   <div style={{marginTop: '1.5rem'}}>
                     <GanttChart data={results[activeAlgorithm].gantt_chart} algorithm={activeAlgorithm} />
                   </div>
                 </div>
-                
-                {activeAlgorithm === 'ML-SJF' && (
+
+                {/* Per-Process Metrics */}
+                {results[activeAlgorithm]?.metrics?.per_process && (
+                  <ProcessMetricsTable
+                    perProcess={results[activeAlgorithm].metrics.per_process}
+                    algorithm={activeAlgorithm}
+                  />
+                )}
+
+                {/* ML Prediction Transparency */}
+                {activeAlgorithm === 'ML-SJF' && results['ML-SJF']?.prediction_error && (
                   <PredictionTable predictionError={results['ML-SJF'].prediction_error} />
                 )}
               </div>
@@ -120,7 +154,12 @@ const Dashboard = () => {
                   <Cpu size={64} className="empty-icon" />
                 </div>
                 <h2>Awaiting Configuration</h2>
-                <p>Define your processes on the left and run the simulation. The system will evaluate FCFS, SJF, and ML-SJF automatically for comparison.</p>
+                <p>Define your processes on the left and run the simulation. The system will evaluate all 7 scheduling algorithms automatically for comparison.</p>
+                <div className="algo-badges">
+                  {ALGORITHMS.map(a => (
+                    <span key={a} className="algo-badge">{a}</span>
+                  ))}
+                </div>
               </div>
             )}
           </div>

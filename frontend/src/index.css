@@ -79,6 +79,7 @@ body {
 
 /* Process Form */
 .processes-section { margin-bottom: 1.5rem; }
+.processes-list { max-height: 400px; overflow-y: auto; overflow-x: hidden; padding-right: 0.5rem; }
 .processes-header {
   display: flex; gap: 0.5rem; font-size: 0.7rem; font-weight: 600;
   color: var(--text-muted); margin-bottom: 0.5rem; padding: 0 0.25rem;

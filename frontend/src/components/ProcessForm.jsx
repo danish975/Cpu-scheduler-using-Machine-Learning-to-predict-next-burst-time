@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Play, Settings, ChevronDown, ChevronUp, Zap } from 'lucide-react';
+import { Plus, Trash2, Play, Settings, ChevronDown, ChevronUp, Zap, Dices } from 'lucide-react';
 
 const ALGORITHMS = ['FCFS', 'SJF', 'SRTF', 'RR', 'Priority', 'Priority-P', 'ML-SJF'];
 
@@ -17,6 +17,10 @@ const ProcessForm = ({ onSimulate, isLoading }) => {
   const [agingRate, setAgingRate] = useState(1.0);
   const [mlMethod, setMlMethod] = useState('ensemble');
   const [isValid, setIsValid] = useState(true);
+
+  const [showGenerator, setShowGenerator] = useState(false);
+  const [genCount, setGenCount] = useState(50);
+  const [genProfile, setGenProfile] = useState('mixed');
 
   useEffect(() => {
     let valid = true;
@@ -54,6 +58,50 @@ const ProcessForm = ({ onSimulate, isLoading }) => {
 
   const removeProcess = (index) => {
     setProcesses(processes.filter((_, i) => i !== index));
+  };
+
+  const generateRandomWorkload = () => {
+    const count = parseInt(genCount, 10) || 50;
+    const newProcesses = [];
+    
+    // Ensure I/O is enabled if generating I/O-bound or mixed
+    if (genProfile === 'io-bound' || genProfile === 'mixed') {
+      setShowIO(true);
+    }
+
+    for (let i = 1; i <= count; i++) {
+      const arrival = Math.floor(Math.random() * count); // Spread arrivals over time
+      const priority = Math.floor(Math.random() * 10) + 1;
+      
+      let numBursts = Math.floor(Math.random() * 4) + 1; // 1 to 4 CPU bursts
+      let cpuBursts = [];
+      let ioBursts = [];
+      
+      for (let b = 0; b < numBursts; b++) {
+        if (genProfile === 'cpu-bound') {
+          cpuBursts.push(Math.floor(Math.random() * 40) + 10); // 10-49
+          if (b < numBursts - 1) ioBursts.push(Math.floor(Math.random() * 5) + 1); // 1-5
+        } else if (genProfile === 'io-bound') {
+          cpuBursts.push(Math.floor(Math.random() * 5) + 1); // 1-5
+          if (b < numBursts - 1) ioBursts.push(Math.floor(Math.random() * 20) + 10); // 10-29
+        } else {
+          // Mixed
+          cpuBursts.push(Math.floor(Math.random() * 30) + 1);
+          if (b < numBursts - 1) ioBursts.push(Math.floor(Math.random() * 30) + 1);
+        }
+      }
+      
+      newProcesses.push({
+        id: `P${i}`,
+        arrival,
+        priority,
+        cpuBursts: cpuBursts.join(','),
+        ioBursts: ioBursts.join(',')
+      });
+    }
+    
+    setProcesses(newProcesses);
+    setShowGenerator(false);
   };
 
   const handleSubmit = (e) => {
@@ -108,7 +156,57 @@ const ProcessForm = ({ onSimulate, isLoading }) => {
             <Zap size={14} />
             {showIO ? 'I/O Enabled' : 'Enable I/O'}
           </button>
+          
+          <button
+            type="button"
+            className="advanced-toggle-btn"
+            onClick={() => setShowGenerator(!showGenerator)}
+            style={{ marginLeft: 'auto' }}
+          >
+            <Dices size={16} />
+            <span>Generator</span>
+            {showGenerator ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
         </div>
+
+        {/* Generator Panel */}
+        {showGenerator && (
+          <div className="advanced-panel fade-in" style={{ backgroundColor: 'var(--bg-secondary)', borderLeft: '4px solid var(--accent)', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '0.9rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Random Workload Generator</h3>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div className="slider-group" style={{ flex: 1, minWidth: '120px' }}>
+                <label>Process Count</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="100" 
+                  value={genCount} 
+                  onChange={e => setGenCount(e.target.value)} 
+                  className="input-number"
+                  style={{ width: '100%', marginTop: '0.5rem' }}
+                />
+              </div>
+              <div className="slider-group" style={{ flex: 2, minWidth: '200px' }}>
+                <label>Workload Profile</label>
+                <select 
+                  value={genProfile} 
+                  onChange={e => setGenProfile(e.target.value)}
+                  className="input-select"
+                  style={{ marginTop: '0.5rem' }}
+                >
+                  <option value="cpu-bound">CPU-Bound (Long CPU, Short I/O)</option>
+                  <option value="io-bound">I/O-Bound (Short CPU, Long I/O)</option>
+                  <option value="mixed">Mixed Workload (Random)</option>
+                </select>
+              </div>
+              <div style={{ paddingBottom: '4px' }}>
+                <button type="button" onClick={generateRandomWorkload} className="btn btn-primary">
+                  <Dices size={16} /> Generate
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Advanced Settings Panel */}
         {showAdvanced && (
